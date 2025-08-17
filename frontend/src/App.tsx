@@ -90,7 +90,7 @@ const App = () => (
             } />
             
             <Route path="/register/marriage" element={
-              <ProtectedRoute roles={['registrar', 'religious_institution']}>
+              <ProtectedRoute roles={['registrar', 'religious_institution', 'court']}>
                 <MarriageRegistration />
               </ProtectedRoute>
             } />
@@ -103,13 +103,13 @@ const App = () => (
             } />
 
             <Route path="/register/divorce" element={
-              <ProtectedRoute roles={['registrar']}>
+              <ProtectedRoute roles={['registrar', 'court']}>
                 <DivorceRegistration />
               </ProtectedRoute>
             } />
 
             <Route path="/register/adoption" element={
-              <ProtectedRoute roles={['registrar']}>
+              <ProtectedRoute roles={['registrar', 'court']}>
                 <AdoptionRegistration />
               </ProtectedRoute>
             } />

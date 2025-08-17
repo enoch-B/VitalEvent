@@ -67,7 +67,7 @@ const mockUsers: User[] = [
     email: 'court@citycourt.gov',
     role: 'court',
     institutionName: 'City Court System',
-    permissions: ['register_divorces', 'register_adoptions', 'generate_reports']
+    permissions: ['register_divorces', 'register_adoptions', 'register_marriages', 'generate_reports']
   },
   {
     id: '7',

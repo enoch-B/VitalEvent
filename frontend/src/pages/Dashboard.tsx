@@ -175,6 +175,55 @@ export default function Dashboard() {
           </div>
         );
 
+      case 'court':
+        return (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="stat-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Court Cases</CardTitle>
+                <Gavel className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">156</div>
+                <p className="text-xs text-muted-foreground">+8% from last month</p>
+              </CardContent>
+            </Card>
+
+            <Card className="stat-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Divorces</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">89</div>
+                <p className="text-xs text-muted-foreground">This month</p>
+              </CardContent>
+            </Card>
+
+            <Card className="stat-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Adoptions</CardTitle>
+                <UserPlus className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">23</div>
+                <p className="text-xs text-muted-foreground">This month</p>
+              </CardContent>
+            </Card>
+
+            <Card className="stat-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Marriages</CardTitle>
+                <Heart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">67</div>
+                <p className="text-xs text-muted-foreground">This month</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
       default:
         return (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
