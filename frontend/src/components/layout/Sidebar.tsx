@@ -53,19 +53,19 @@ const navItems: NavItem[] = [
     title: 'Register Marriage',
     href: '/register/marriage',
     icon: Heart,
-    roles: ['registrar', 'religious_institution']
+    roles: ['registrar', 'religious_institution', 'court']
   },
   {
     title: 'Register Divorce',
     href: '/register/divorce',
     icon: Gavel,
-    roles: ['registrar']
+    roles: ['registrar', 'court']
   },
   {
     title: 'Register Adoption',
     href: '/register/adoption',
     icon: UserPlus,
-    roles: ['registrar']
+    roles: ['registrar', 'court']
   },
   {
     title: 'Records',

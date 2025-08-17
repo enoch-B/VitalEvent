@@ -152,7 +152,9 @@ export default function Profile() {
         ];
       case 'court':
         return [
-          'Process legal registrations',
+          'Register divorces',
+          'Register adoptions',
+          'Register marriages',
           'Access court records',
           'Generate legal documents',
           'Manage case files'
@@ -208,10 +210,10 @@ export default function Profile() {
         ];
       case 'court':
         return [
-          { label: 'Cases Processed', value: '234', icon: <FileText className="w-4 h-4" /> },
-          { label: 'Judges', value: '8', icon: <User className="w-4 h-4" /> },
-          { label: 'Court Type', value: 'District', icon: <Building2 className="w-4 h-4" /> },
-          { label: 'Success Rate', value: '96%', icon: <Award className="w-4 h-4" /> }
+          { label: 'Divorces Registered', value: '89', icon: <FileText className="w-4 h-4" /> },
+          { label: 'Adoptions Registered', value: '23', icon: <FileText className="w-4 h-4" /> },
+          { label: 'Marriages Registered', value: '67', icon: <FileText className="w-4 h-4" /> },
+          { label: 'Court Type', value: 'District', icon: <Building2 className="w-4 h-4" /> }
         ];
       case 'religious_institution':
         return [
