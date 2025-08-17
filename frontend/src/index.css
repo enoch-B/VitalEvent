@@ -151,6 +151,7 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   /* Smooth scrolling */
@@ -161,6 +162,25 @@ All colors MUST be HSL.
   /* Beautiful focus states */
   *:focus-visible {
     @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Theme transition for all elements */
+  * {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Theme toggle button specific styles */
+  .theme-toggle {
+    @apply relative overflow-hidden;
+  }
+
+  .theme-toggle::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 opacity-0 transition-opacity duration-200;
+  }
+
+  .theme-toggle:hover::before {
+    @apply opacity-100;
   }
 }
 
@@ -249,6 +269,15 @@ All colors MUST be HSL.
 
   .shadow-card {
     box-shadow: 0 4px 20px -4px hsl(var(--foreground) / 0.1);
+  }
+
+  /* Theme-specific utilities */
+  .theme-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theme-toggle-hover {
+    @apply hover:bg-muted/50 hover:scale-105 transition-all duration-200;
   }
 
   /* Animation Utilities */

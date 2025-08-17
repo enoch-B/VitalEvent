@@ -11,17 +11,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Link } from 'react-router-dom';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export function Header() {
   const { user, logout } = useAuth();
+  const { theme } = useTheme();
 
   const handleLogout = () => {
     logout();
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-card border-b border-border">
+    <header className="flex items-center justify-between px-6 py-4 bg-card border-b border-border transition-all duration-300">
       {/* Search */}
       <div className="flex items-center space-x-4 flex-1 max-w-md">
         <div className="relative flex-1">
@@ -35,6 +38,15 @@ export function Header() {
 
       {/* Actions */}
       <div className="flex items-center space-x-4">
+        {/* Theme Toggle */}
+        <div className="flex items-center space-x-2">
+          <ThemeToggle />
+          <div className="hidden sm:flex items-center space-x-1 text-xs text-muted-foreground">
+            <span className="w-2 h-2 rounded-full bg-primary"></span>
+            <span className="capitalize">{theme === 'system' ? 'Auto' : theme}</span>
+          </div>
+        </div>
+        
         {/* Notifications */}
         <Button variant="ghost" size="sm" className="relative">
           <Bell className="w-5 h-5" />

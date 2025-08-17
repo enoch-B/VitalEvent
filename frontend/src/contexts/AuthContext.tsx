@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '@/lib/api';
 
 export type UserRole = 'registrar' | 'registrant' | 'admin' | 'office_manager' | 'health_institution' | 'court' | 'religious_institution';
 
@@ -10,74 +11,21 @@ export interface User {
   indexNumber?: string; // For registrants
   institutionName?: string; // For institutions
   permissions: string[];
+  institutionId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, role?: UserRole) => Promise<boolean>;
-  logout: () => void;
-  signup: (indexNumber: string, personalDetails: any) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  signup: (userData: any) => Promise<boolean>;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock users for demo
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'John Smith',
-    email: 'john.registrar@veims.gov',
-    role: 'registrar',
-    permissions: ['create_records', 'update_records', 'view_records', 'generate_reports']
-  },
-  {
-    id: '2',
-    name: 'Jane Doe',
-    email: 'jane.citizen@email.com',
-    role: 'registrant',
-    indexNumber: 'ID123456789',
-    permissions: ['view_own_records']
-  },
-  {
-    id: '3',
-    name: 'Admin User',
-    email: 'admin@veims.gov',
-    role: 'admin',
-    permissions: ['manage_users', 'system_config', 'view_all_records']
-  },
-  {
-    id: '4',
-    name: 'Sarah Manager',
-    email: 'sarah.manager@veims.gov',
-    role: 'office_manager',
-    permissions: ['generate_predictions', 'view_reports', 'update_records']
-  },
-  {
-    id: '5',
-    name: 'City General Hospital',
-    email: 'records@cityhospital.org',
-    role: 'health_institution',
-    institutionName: 'City General Hospital',
-    permissions: ['register_births', 'register_deaths', 'generate_reports']
-  },
-  {
-    id: '6',
-    name: 'City Court System',
-    email: 'court@citycourt.gov',
-    role: 'court',
-    institutionName: 'City Court System',
-    permissions: ['register_divorces', 'register_adoptions', 'register_marriages', 'generate_reports']
-  },
-  {
-    id: '7',
-    name: 'St. Mary Church',
-    email: 'marriage@stmarychurch.org',
-    role: 'religious_institution',
-    institutionName: 'St. Mary Church',
-    permissions: ['register_marriages', 'generate_reports']
-  }
-];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -85,61 +33,90 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check for existing session
-    const savedUser = localStorage.getItem('veims_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      refreshUser();
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string, role?: UserRole): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Mock authentication
-    const foundUser = mockUsers.find(u => u.email === email);
-    
-    if (foundUser && password === 'password123') {
-      setUser(foundUser);
-      localStorage.setItem('veims_user', JSON.stringify(foundUser));
+  const refreshUser = async () => {
+    try {
+      const response = await authAPI.refreshToken();
+      if (response.data.success) {
+        const userData = response.data.user;
+        setUser(userData);
+        localStorage.setItem('authToken', response.data.token);
+      } else {
+        localStorage.removeItem('authToken');
+        setUser(null);
+      }
+    } catch (error) {
+      localStorage.removeItem('authToken');
+      setUser(null);
+    } finally {
       setIsLoading(false);
-      return true;
     }
-    
-    setIsLoading(false);
-    return false;
   };
 
-  const signup = async (indexNumber: string, personalDetails: any): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
-    // Mock signup for registrants
-    if (indexNumber === 'ID123456789') {
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: personalDetails.name,
-        email: personalDetails.email,
-        role: 'registrant',
-        indexNumber,
-        permissions: ['view_own_records']
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('veims_user', JSON.stringify(newUser));
+    try {
+      const response = await authAPI.login({ email, password });
+      if (response.data.success) {
+        const userData = response.data.user;
+        setUser(userData);
+        localStorage.setItem('authToken', response.data.token);
+        setIsLoading(false);
+        return true;
+      } else {
+        setIsLoading(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       setIsLoading(false);
-      return true;
+      return false;
     }
-    
-    setIsLoading(false);
-    return false;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('veims_user');
+  const signup = async (userData: any): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      const response = await authAPI.register(userData);
+      if (response.data.success) {
+        const newUser = response.data.user;
+        setUser(newUser);
+        localStorage.setItem('authToken', response.data.token);
+        setIsLoading(false);
+        return true;
+      } else {
+        setIsLoading(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('authToken');
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, signup, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, signup, isLoading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

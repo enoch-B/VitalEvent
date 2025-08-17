@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { BackendStatus } from '@/components/BackendStatus';
 import { 
   Users, 
   FileText, 
@@ -285,6 +286,11 @@ export default function Dashboard() {
         <p className="text-muted-foreground">
           Here's what's happening in your {user?.role.replace('_', ' ')} dashboard today.
         </p>
+      </div>
+
+      {/* Backend Status */}
+      <div className="flex justify-center">
+        <BackendStatus />
       </div>
 
       {/* Role-specific stats */}
