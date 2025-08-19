@@ -1,154 +1,106 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '@/lib/api';
+
 
 export type UserRole = 'registrar' | 'registrant' | 'admin' | 'office_manager' | 'health_institution' | 'court' | 'religious_institution';
-
-export interface User {
+// -------------------
+// Types
+// -------------------
+interface User {
   id: string;
+  indexNumber: string;
   name: string;
   email: string;
-  role: UserRole;
-  indexNumber?: string; // For registrants
-  institutionName?: string; // For institutions
-  permissions: string[];
+  role: string;
+  institutionId?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, role?: UserRole) => Promise<boolean>;
+  isLoading: boolean; // <-- add this
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  signup: (indexNumber: string, personalDetails: any) => Promise<boolean>;
-  isLoading: boolean;
+  refreshSession: () => Promise<void>;
 }
 
+// -------------------
+// Context
+// -------------------
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demo
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'John Smith',
-    email: 'john.registrar@veims.gov',
-    role: 'registrar',
-    permissions: ['create_records', 'update_records', 'view_records', 'generate_reports']
-  },
-  {
-    id: '2',
-    name: 'Jane Doe',
-    email: 'jane.citizen@email.com',
-    role: 'registrant',
-    indexNumber: 'ID123456789',
-    permissions: ['view_own_records']
-  },
-  {
-    id: '3',
-    name: 'Admin User',
-    email: 'admin@veims.gov',
-    role: 'admin',
-    permissions: ['manage_users', 'system_config', 'view_all_records']
-  },
-  {
-    id: '4',
-    name: 'Sarah Manager',
-    email: 'sarah.manager@veims.gov',
-    role: 'office_manager',
-    permissions: ['generate_predictions', 'view_reports', 'update_records']
-  },
-  {
-    id: '5',
-    name: 'City General Hospital',
-    email: 'records@cityhospital.org',
-    role: 'health_institution',
-    institutionName: 'City General Hospital',
-    permissions: ['register_births', 'register_deaths', 'generate_reports']
-  },
-  {
-    id: '6',
-    name: 'City Court System',
-    email: 'court@citycourt.gov',
-    role: 'court',
-    institutionName: 'City Court System',
-    permissions: ['register_divorces', 'register_adoptions', 'register_marriages', 'generate_reports']
-  },
-  {
-    id: '7',
-    name: 'St. Mary Church',
-    email: 'marriage@stmarychurch.org',
-    role: 'religious_institution',
-    institutionName: 'St. Mary Church',
-    permissions: ['register_marriages', 'generate_reports']
-  }
-];
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+// -------------------
+// Provider
+// -------------------
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem('veims_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string, role?: UserRole): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    
-    // Mock authentication
-    const foundUser = mockUsers.find(u => u.email === email);
-    
-    if (foundUser && password === 'password123') {
-      setUser(foundUser);
-      localStorage.setItem('veims_user', JSON.stringify(foundUser));
+    try {
+      const response = await authAPI.login({ email, password });
+      if (response.data?.token) {
+        setUser(response.data.user);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem("authToken", response.data.token);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("❌ Login failed:", error);
+      return false;
+    } finally {
       setIsLoading(false);
-      return true;
     }
-    
-    setIsLoading(false);
-    return false;
-  };
-
-  const signup = async (indexNumber: string, personalDetails: any): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Mock signup for registrants
-    if (indexNumber === 'ID123456789') {
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: personalDetails.name,
-        email: personalDetails.email,
-        role: 'registrant',
-        indexNumber,
-        permissions: ['view_own_records']
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('veims_user', JSON.stringify(newUser));
-      setIsLoading(false);
-      return true;
-    }
-    
-    setIsLoading(false);
-    return false;
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('veims_user');
+    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("refreshToken");
+  };
+
+  const refreshSession = async () => {
+    setIsLoading(true);
+    try {
+      const response = await authAPI.refreshToken(); // no args needed
+      if (response.data?.token) {
+        localStorage.setItem("authToken", response.data.token);
+        return;
+      }
+      logout();
+    } catch (error) {
+      console.error("❌ Session refresh failed:", error);
+      logout();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, signup, isLoading }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+// -------------------
+// Hook
+// -------------------
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}
+};

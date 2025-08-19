@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { BackendStatus } from '@/components/BackendStatus';
 import { 
   Users, 
   FileText, 
@@ -128,6 +129,13 @@ export default function Dashboard() {
 
       case 'admin':
         return (
+          <>
+                      
+             {/* Backend Status */}
+             <div className="flex justify-center">
+            <BackendStatus />
+          </div>
+           
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card className="stat-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -173,6 +181,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+          </>
         );
 
       case 'court':
@@ -286,6 +295,8 @@ export default function Dashboard() {
           Here's what's happening in your {user?.role.replace('_', ' ')} dashboard today.
         </p>
       </div>
+
+
 
       {/* Role-specific stats */}
       {getRoleDashboard()}
