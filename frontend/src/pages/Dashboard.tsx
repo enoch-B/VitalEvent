@@ -129,6 +129,13 @@ export default function Dashboard() {
 
       case 'admin':
         return (
+          <>
+                      
+             {/* Backend Status */}
+             <div className="flex justify-center">
+            <BackendStatus />
+          </div>
+           
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card className="stat-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -174,6 +181,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+          </>
         );
 
       case 'court':
@@ -288,10 +296,7 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Backend Status */}
-      <div className="flex justify-center">
-        <BackendStatus />
-      </div>
+
 
       {/* Role-specific stats */}
       {getRoleDashboard()}

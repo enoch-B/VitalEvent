@@ -26,7 +26,7 @@ export function BackendStatus() {
     try {
       // Try to connect to the backend health endpoint
       // Using fetch with no-cors mode to bypass CORS issues
-      const response = await fetch('http://localhost:3001/health', {
+      const response = await fetch('http://localhost:5001/health', {
         method: 'GET',
         mode: 'no-cors', // This bypasses CORS for simple connectivity check
       });
@@ -42,7 +42,7 @@ export function BackendStatus() {
     } catch (error: any) {
       // Try alternative method - check if port is open
       try {
-        const testResponse = await fetch('http://localhost:3001/', {
+        const testResponse = await fetch('http://localhost:5001/', {
           method: 'GET',
           mode: 'no-cors',
         });
@@ -138,7 +138,7 @@ export function BackendStatus() {
         </Button>
 
         <div className="text-xs text-muted-foreground text-center">
-          Backend URL: {import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1'}
+          Backend URL:  http://localhost:5001/api/v1
         </div>
       </CardContent>
     </Card>

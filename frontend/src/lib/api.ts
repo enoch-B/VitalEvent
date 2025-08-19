@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-// API base URL - change this to match your backend server
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+// API base URL
+const API_BASE_URL ='http://localhost:5001/api/v1';
 
-// Create axios instance with default configuration
+// Axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 seconds
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -21,36 +21,43 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle common errors
+// Response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
       window.location.href = '/login';
     }
     return Promise.reject(error);
   }
 );
 
-// Auth API endpoints
+// -------------------- Auth API --------------------
 export const authAPI = {
-  login: (credentials: { email: string; password: string }) =>
-    api.post('/auth/login', credentials),
-  register: (userData: any) => api.post('/auth/register', userData),
-  refreshToken: () => api.post('/auth/refresh'),
-  logout: () => api.post('/auth/logout'),
+  login: (credentials: { email: string; password: string; role?: string }) =>
+    api.post('auth/login', credentials),
+
+  register: (userData: any) =>
+    api.post('auth/register', userData),
+
+  refreshToken: () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    return api.post('auth/refresh', { refreshToken });
+  },
+
+  logout: () =>
+    api.post('/auth/logout'),
+
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
-    api.post('/auth/change-password', data),
+    api.post('auth/change-password', data),
 };
 
-// Users API endpoints
+// -------------------- Users API --------------------
 export const usersAPI = {
   getAll: (params?: any) => api.get('/users', { params }),
   getById: (id: string) => api.get(`/users/${id}`),
@@ -61,7 +68,7 @@ export const usersAPI = {
   updateProfile: (userData: any) => api.put('/users/profile', userData),
 };
 
-// Institutions API endpoints
+// -------------------- Institutions API --------------------
 export const institutionsAPI = {
   getAll: (params?: any) => api.get('/institutions', { params }),
   getById: (id: string) => api.get(`/institutions/${id}`),
@@ -70,7 +77,7 @@ export const institutionsAPI = {
   delete: (id: string) => api.delete(`/institutions/${id}`),
 };
 
-// Records API endpoints
+// -------------------- Records API --------------------
 export const recordsAPI = {
   getAll: (params?: any) => api.get('/records', { params }),
   getById: (id: string) => api.get(`/records/${id}`),
@@ -82,14 +89,12 @@ export const recordsAPI = {
     api.get(`/records/institution/${institutionId}`, { params }),
 };
 
-// AI API endpoints
+// -------------------- AI API --------------------
 export const aiAPI = {
   analyzeDocument: (file: File, options?: any) => {
     const formData = new FormData();
     formData.append('file', file);
-    if (options) {
-      formData.append('options', JSON.stringify(options));
-    }
+    if (options) formData.append('options', JSON.stringify(options));
     return api.post('/ai/analyze', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
@@ -107,7 +112,7 @@ export const aiAPI = {
   getAnalysisHistory: (recordId: string) => api.get(`/ai/analysis/${recordId}`),
 };
 
-// Analytics API endpoints
+// -------------------- Analytics API --------------------
 export const analyticsAPI = {
   getDashboardStats: () => api.get('/analytics/dashboard'),
   getRecordsByType: (params?: any) => api.get('/analytics/records-by-type', { params }),
@@ -116,7 +121,7 @@ export const analyticsAPI = {
   getAIUsageStats: (params?: any) => api.get('/analytics/ai-usage', { params }),
 };
 
-// Reports API endpoints
+// -------------------- Reports API --------------------
 export const reportsAPI = {
   generateReport: (params: any) => api.post('/reports/generate', params),
   getReportHistory: (params?: any) => api.get('/reports/history', { params }),

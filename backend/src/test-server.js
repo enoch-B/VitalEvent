@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 
 const app = express();
-const PORT = 3001;
+const PORT = 5001;
 
 // CORS configuration - must come before other middleware
 app.use(cors({
