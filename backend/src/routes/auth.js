@@ -517,6 +517,9 @@ router.get('/profile', async (req, res) => {
       });
     }
 
+
+
+
     // Find user
     const user = await db('users')
       .where('email', email)
