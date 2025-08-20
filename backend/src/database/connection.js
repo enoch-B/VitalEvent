@@ -1,14 +1,16 @@
 import knex from 'knex';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { createLogger } from 'winston';
+import winston from 'winston';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const logger = createLogger({
+// ✅ use winston with ESM import
+const logger = winston.createLogger({
   level: 'info',
-  format: require('winston').format.simple()
+  format: winston.format.simple(),
+  transports: [new winston.transports.Console()]
 });
 
 // Database configuration
@@ -51,14 +53,10 @@ export async function testConnection() {
 // Initialize database with tables
 export async function initializeDatabase() {
   try {
-    // Test connection
     await testConnection();
-
-    // Run migrations
     await db.migrate.latest();
     logger.info('Database migrations completed');
 
-    // Run seeds in development
     if (process.env.NODE_ENV === 'development') {
       await db.seed.run();
       logger.info('Database seeded successfully');
@@ -81,5 +79,4 @@ export async function closeConnection() {
   }
 }
 
-// Export database instance
 export default db;
