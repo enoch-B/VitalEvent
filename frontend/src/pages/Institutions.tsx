@@ -1,22 +1,19 @@
-
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { 
+  Card, CardContent, CardDescription, CardHeader, CardTitle 
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
-  Search, 
-  Building2, 
-  Plus, 
-  Edit, 
-  MapPin,
-  Users,
-  MoreHorizontal,
-  Hospital,
-  Gavel,
-  Church
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from '@/components/ui/select';
+import { 
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
+} from '@/components/ui/table';
+import { 
+  Search, Building2, Plus, Edit, MapPin, Users, MoreHorizontal, 
+  Hospital, Gavel, Church 
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -25,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import AddInstitutionDialog from '@/components/forms/AddInstitutionDialog';
+import { institutionsAPI } from '@/lib/api';
 
 interface Institution {
   id: string;
@@ -39,63 +37,29 @@ interface Institution {
   phone: string;
 }
 
-// Mock institutions data
-const mockInstitutions: Institution[] = [
-  {
-    id: '1',
-    name: 'City General Hospital',
-    type: 'health_institution',
-    email: 'records@cityhospital.org',
-    address: '123 Medical Center Dr',
-    city: 'New York',
-    status: 'active',
-    registrationDate: '2023-06-15',
-    contactPerson: 'Dr. Sarah Wilson',
-    phone: '+1-555-0123'
-  },
-  {
-    id: '2',
-    name: 'Metropolitan Family Court',
-    type: 'court',
-    email: 'records@familycourt.gov',
-    address: '456 Justice Blvd',
-    city: 'Brooklyn',
-    status: 'active',
-    registrationDate: '2023-08-20',
-    contactPerson: 'Judge Michael Brown',
-    phone: '+1-555-0456'
-  },
-  {
-    id: '3',
-    name: 'St. Mary\'s Church',
-    type: 'religious_institution',
-    email: 'admin@stmarys.org',
-    address: '789 Faith Street',
-    city: 'Queens',
-    status: 'active',
-    registrationDate: '2023-09-10',
-    contactPerson: 'Father John Davis',
-    phone: '+1-555-0789'
-  },
-  {
-    id: '4',
-    name: 'Sacred Heart Hospital',
-    type: 'health_institution',
-    email: 'admin@sacredheart.org',
-    address: '321 Healing Way',
-    city: 'Manhattan',
-    status: 'pending',
-    registrationDate: '2024-01-10',
-    contactPerson: 'Dr. Emily Johnson',
-    phone: '+1-555-0321'
-  }
-];
-
 export default function Institutions() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [institutions, setInstitutions] = useState(mockInstitutions);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch institutions from API
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      try {
+        setIsLoading(true);
+        const response = await institutionsAPI.getAll();
+        setInstitutions(response.data); // adjust if your API response is different
+      } catch (error) {
+        console.error("Failed to fetch institutions:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInstitutions();
+  }, []);
 
   const handleAddInstitution = (newInstitution: Institution) => {
     setInstitutions([...institutions, newInstitution]);
@@ -145,11 +109,10 @@ export default function Institutions() {
 
   const filteredInstitutions = institutions.filter(institution => {
     const matchesSearch = institution.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         institution.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         institution.city.toLowerCase().includes(searchTerm.toLowerCase());
+                          institution.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          institution.city.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || institution.type === filterType;
     const matchesStatus = filterStatus === 'all' || institution.status === filterStatus;
-    
     return matchesSearch && matchesType && matchesStatus;
   });
 
@@ -225,85 +188,87 @@ export default function Institutions() {
           <CardDescription>Manage registered institutions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Institution</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Contact Person</TableHead>
-                  <TableHead>Registration Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredInstitutions.map((institution) => (
-                  <TableRow key={institution.id} className="hover:bg-muted/50 transition-colors">
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                          {getInstitutionIcon(institution.type)}
-                        </div>
-                        <div>
-                          <div className="font-medium">{institution.name}</div>
-                          <div className="text-sm text-muted-foreground">{institution.email}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getTypeBadge(institution.type)}</TableCell>
-                    <TableCell>{getStatusBadge(institution.status)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <div className="text-sm">{institution.address}</div>
-                          <div className="text-xs text-muted-foreground">{institution.city}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="text-sm font-medium">{institution.contactPerson}</div>
-                        <div className="text-xs text-muted-foreground">{institution.phone}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(institution.registrationDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Institution
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Users className="mr-2 h-4 w-4" />
-                            View Users
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {filteredInstitutions.length === 0 && (
+          {isLoading ? (
+            <div className="text-center py-8">Loading institutions...</div>
+          ) : filteredInstitutions.length === 0 ? (
             <div className="text-center py-8">
               <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No institutions found</h3>
               <p className="text-muted-foreground">
                 Try adjusting your search criteria or filters.
               </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Institution</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Contact Person</TableHead>
+                    <TableHead>Registration Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredInstitutions.map((institution) => (
+                    <TableRow key={institution.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            {getInstitutionIcon(institution.type)}
+                          </div>
+                          <div>
+                            <div className="font-medium">{institution.name}</div>
+                            <div className="text-sm text-muted-foreground">{institution.email}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getTypeBadge(institution.type)}</TableCell>
+                      <TableCell>{getStatusBadge(institution.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="w-4 h-4 text-muted-foreground" />
+                          <div>
+                            <div className="text-sm">{institution.address}</div>
+                            <div className="text-xs text-muted-foreground">{institution.city}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="text-sm font-medium">{institution.contactPerson}</div>
+                          <div className="text-xs text-muted-foreground">{institution.phone}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(institution.registrationDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Institution
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Users className="mr-2 h-4 w-4" />
+                              View Users
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
